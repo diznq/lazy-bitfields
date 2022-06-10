@@ -1,11 +1,15 @@
 public class StandardBit implements Bit {
     private enum Op {
-        NAND, AND, OR, XOR, NOT, ZERO, ONE
+        ZERO, ONE, NOT,
+        NAND, AND, OR, XOR,
+        NAND3, AND3, OR3, XOR3,
     }
 
+    public static int OPS = 0;
     private static int NAME_COUNTER = 0;
     Bit a;
     Bit b;
+    Bit c;
     Op op;
     String name;
 
@@ -28,68 +32,82 @@ public class StandardBit implements Bit {
         this.op = op;
     }
 
-    /**
-     * NOT
-     * @return !(this)
-     */
+    public StandardBit(Bit a, Bit b, Bit c, Op op){
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.op = op;
+    }
+
     public Bit not() {
         return new StandardBit(this, null, Op.NOT);
     }
 
-    /**
-     * NAND
-     * @param other operand
-     * @return (this & other)
-     */
     public Bit nand(Bit other){
         return new StandardBit(this, other, Op.NAND);
     }
 
-    /**
-     * AND
-     * @param other operand
-     * @return (this & other)
-     */
     public Bit and(Bit other){
         return new StandardBit(this, other, Op.AND);
     }
 
-    /**
-     * OR
-     * @param other operand
-     * @return (this | other)
-     */
     public Bit or(Bit other){
         return new StandardBit(this, other, Op.OR);
     }
 
-    /**
-     * XOR
-     * @param other operand
-     * @return (this ^ other)
-     */
     public Bit xor(Bit other){
         return new StandardBit(this, other, Op.XOR);
     }
 
     /**
-     * Add two numbers together
-     * @param other operand
-     * @param carry carry bit
-     * @return [(this + operand + carry bit), new carry]
+     * NAND3
+     * @param op1 operand 1
+     * @param op2 operand 1
+     * @return !(this & op1 & op2)
      */
+    public Bit nand3(Bit op1, Bit op2){
+        return new StandardBit(this, op1, op2, Op.NAND3);
+    }
+
+    /**
+     * AND3
+     * @param op1 operand 1
+     * @param op2 operand 1
+     * @return (this & op1 & op2)
+     */
+    public Bit and3(Bit op1, Bit op2){
+        return new StandardBit(this, op1, op2, Op.AND3);
+    }
+
+    /**
+     * OR3
+     * @param op1 operand 1
+     * @param op2 operand 1
+     * @return (this & op1 & op2)
+     */
+    public Bit or3(Bit op1, Bit op2){
+        return new StandardBit(this, op1, op2, Op.OR3);
+    }
+
+    /**
+     * XOR3
+     * @param op1 operand 1
+     * @param op2 operand 1
+     * @return (this ^ op1 ^ op2)
+     */
+    public Bit xor3(Bit op1, Bit op2){
+        return new StandardBit(this, op1, op2, Op.XOR3);
+    }
+
     public Bit[] add(Bit other, Bit carry){
         return new Bit[]{
-            xor(other).xor(carry),
+            xor3(other, carry),
             and(other).or(and(carry)).or(other.and(carry))
         };
     }
 
-    /**
-     * Perform evaluation
-     * @return result, either 1 or 0
-     */
     public byte eval() {
+        OPS++;
         return switch (op) {
             case ZERO -> (byte)0;
             case ONE -> (byte)1;
@@ -98,13 +116,13 @@ public class StandardBit implements Bit {
             case AND -> (byte) (a.eval() & b.eval());
             case OR -> (byte) (a.eval() | b.eval());
             case XOR -> (byte) (a.eval() ^ b.eval());
+            case NAND3 -> (byte)(1 - (a.eval() & b.eval() & c.eval()));
+            case AND3 -> (byte) (a.eval() & b.eval() & c.eval());
+            case OR3 -> (byte) (a.eval() | b.eval() | c.eval());
+            case XOR3 -> (byte) (a.eval() ^ b.eval() ^ c.eval());
         };
     }
 
-    /**
-     * Evaluate to string form
-     * @return string form
-     */
     public String strEval() {
         return switch (op) {
             case ZERO, ONE -> name;
@@ -113,6 +131,10 @@ public class StandardBit implements Bit {
             case AND -> "and("+a.strEval()+", " + b.strEval()+")";
             case OR -> "or("+a.strEval()+", " + b.strEval()+")";
             case XOR -> "xor("+a.strEval()+", " + b.strEval()+")";
+            case NAND3 -> "nand("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
+            case AND3 -> "and("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
+            case OR3 -> "or("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
+            case XOR3 -> "xor("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
         };
     }
 }

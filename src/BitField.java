@@ -1,10 +1,7 @@
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class BitField {
-
-    public static final int BIT_SIZE = 8;
+    public static final int BIT_SIZE = 24;
     private static final Bit Z_CARRY = new StandardBit((byte)0, "ZC");
 
     Bit[] bits;
@@ -151,8 +148,8 @@ public class BitField {
     public static void main(String[] args) throws IOException {
         BitField a = new BitField(9, "a");
         BitField b = new BitField(7, "b");
-        BitField result = a.xor(b).not();
+        BitField result = a.add(b);
         System.out.println(result.toInteger());
-        System.out.println(~(9 ^ 7) & 255);
+        System.out.println(StandardBit.OPS);
     }
 }

@@ -1,6 +1,7 @@
 public class NandBit implements Bit {
     private enum Op {
-        NAND, ZERO, ONE
+        ZERO, ONE,
+        NAND,
     }
 
     private static int NAME_COUNTER = 0;
@@ -28,49 +29,25 @@ public class NandBit implements Bit {
         this.op = op;
     }
 
-    /**
-     * NAND
-     * @param other operand
-     * @return !(this & other)
-     */
     public Bit nand(Bit other){
         return new NandBit(this, other, Op.NAND);
     }
 
-    /**
-     * NOT
-     * @return !(this)
-     */
     public Bit not() {
         return this.nand(this);
     }
 
-    /**
-     * NAND based AND
-     * @param other operand
-     * @return (this & other)
-     */
     public Bit and(Bit other){
         Bit tmp = this.nand(other);
         return tmp.nand(tmp);
     }
 
-    /**
-     * NAND based OR
-     * @param other operand
-     * @return (this | other)
-     */
     public Bit or(Bit other){
         Bit an = this.nand(this);
         Bit bn = other.nand(other);
         return an.nand(bn);
     }
 
-    /**
-     * NAND based XOR
-     * @param other operand
-     * @return (this ^ other)
-     */
     public Bit xor(Bit other){
         Bit aNb = this.nand(other);
         Bit aNaNb = this.nand(aNb);
@@ -78,12 +55,6 @@ public class NandBit implements Bit {
         return aNaNb.nand(bNaNb);
     }
 
-    /**
-     * Add two numbers together
-     * @param other operand
-     * @param carry carry bit
-     * @return [(this + operand + carry bit), new carry]
-     */
     public Bit[] add(Bit other, Bit carry){
         return new Bit[]{
             xor(other).xor(carry),
@@ -91,10 +62,6 @@ public class NandBit implements Bit {
         };
     }
 
-    /**
-     * Perform evaluation
-     * @return result, either 1 or 0
-     */
     public byte eval() {
         return switch (op) {
             case ZERO -> 0;
@@ -103,10 +70,6 @@ public class NandBit implements Bit {
         };
     }
 
-    /**
-     * Evaluate to string form
-     * @return string form
-     */
     public String strEval() {
         return switch (op) {
             case ZERO, ONE -> name;
