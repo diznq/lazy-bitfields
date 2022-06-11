@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+*.txt
+*.exe
+
 bin/
 gradle/
 .gradle/

@@ -1,3 +1,8 @@
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 public class StandardBit implements Bit {
     private enum Op {
         ZERO, ONE, NOT,
@@ -7,11 +12,14 @@ public class StandardBit implements Bit {
 
     public static int OPS = 0;
     private static int NAME_COUNTER = 0;
+    private static int TEMP_COUNTER = 0;
+    public static Map<String, String> TEMPS = new TreeMap<String, String>();
     Bit a;
     Bit b;
     Bit c;
     Op op;
     String name;
+    byte result = (byte)2;
 
     public StandardBit() {
         this((byte)0);
@@ -106,9 +114,10 @@ public class StandardBit implements Bit {
         };
     }
 
-    public byte eval() {
+    public synchronized byte eval() {
         OPS++;
-        return switch (op) {
+        if(result != 2) return result;
+        result = switch (op) {
             case ZERO -> (byte)0;
             case ONE -> (byte)1;
             case NOT -> (byte)(1 - a.eval());
@@ -121,11 +130,14 @@ public class StandardBit implements Bit {
             case OR3 -> (byte) (a.eval() | b.eval() | c.eval());
             case XOR3 -> (byte) (a.eval() ^ b.eval() ^ c.eval());
         };
+        return result;
     }
 
     public String strEval() {
-        return switch (op) {
-            case ZERO, ONE -> name;
+        if(name != null) return ":" + name + "/";
+        String result = switch (op) {
+            case ZERO -> "0";
+            case ONE -> "1";
             case NOT -> "not(" + a.strEval() + ")";
             case NAND -> "nand("+a.strEval()+", " + b.strEval()+")";
             case AND -> "and("+a.strEval()+", " + b.strEval()+")";
@@ -136,5 +148,8 @@ public class StandardBit implements Bit {
             case OR3 -> "or("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
             case XOR3 -> "xor("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
         };
+        name = "T" + TEMP_COUNTER++;
+        TEMPS.put(name, result);
+        return ":" + name + "/";
     }
 }
