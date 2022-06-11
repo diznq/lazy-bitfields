@@ -1,22 +1,20 @@
+import java.util.Map;
+import java.util.TreeMap;
+
 public class NandBit implements Bit {
     private enum Op {
         ZERO, ONE,
         NAND,
     }
 
-    private static int NAME_COUNTER = 0;
+    private static int TEMP_COUNTER = 0;
+    public static Map<String, String> TEMPS = new TreeMap<String, String>();
+    byte result = 2;
+
     Bit a;
     Bit b;
-    String name;
     Op op;
-
-    public NandBit() {
-        this((byte)0);
-    }
-
-    public NandBit(byte value){
-        this(value, "b" + (NAME_COUNTER++));
-    }
+    String name;
 
     public NandBit(byte value, String name){
         this.name = name;
@@ -63,7 +61,8 @@ public class NandBit implements Bit {
     }
 
     public byte eval() {
-        return switch (op) {
+        if(result != 2) return result;
+        return result = switch (op) {
             case ZERO -> 0;
             case ONE -> 1;
             case NAND -> (byte)(1 - (a.eval() & b.eval()));
@@ -71,9 +70,14 @@ public class NandBit implements Bit {
     }
 
     public String strEval() {
-        return switch (op) {
-            case ZERO, ONE -> name;
+        if(name != null) return ":" + name + "/";
+        String result = switch (op) {
+            case ZERO -> "0";
+            case ONE -> "1";
             case NAND -> "nand("+a.strEval()+", " + b.strEval()+")";
         };
+        name = "T%06d".formatted(TEMP_COUNTER++);
+        TEMPS.put(name, result);
+        return ":" + name + "/";
     }
 }

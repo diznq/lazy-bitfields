@@ -1,5 +1,5 @@
 public class BitField {
-    private static final Bit Z_CARRY = new StandardBit((byte)0, "ZC");
+    private static final Bit Z_CARRY = new NandBit((byte)0, "ZC");
     private final int BIT_SIZE;
 
     Bit[] bits;
@@ -23,7 +23,7 @@ public class BitField {
         bits = new Bit[BIT_SIZE];
         for(int i=0; i<BIT_SIZE; i++){
             int b = (number >>> i) & 1;
-            bits[BIT_SIZE - 1 - i] = new StandardBit((byte)b, "%s_%04d".formatted(name, i + offset));
+            bits[BIT_SIZE - 1 - i] = new NandBit((byte)b, "%s_%04d".formatted(name, i + offset));
         }
     }
 

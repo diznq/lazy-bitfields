@@ -1,4 +1,3 @@
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -6,16 +5,12 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Sha256 {
-    private static final int BLOCK_BITS = 512;
-    private static final int BLOCK_BYTES = BLOCK_BITS / 8;
-    BitField[] H = new BitField[8];
+    private static final int BLOCK_BYTES = 64;
+    BitField[] H  = new BitField[8];
     BitField[] H0 = new BitField[8];
-    BitField[] K = new BitField[64];
+    BitField[] K  = new BitField[64];
 
     private static final int[] K_ = {
             0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -45,14 +40,6 @@ public class Sha256 {
         System.arraycopy(H0, 0, H, 0, H0.length);
     }
 
-    public String toHex(BitField[] fields){
-        StringBuilder hex = new StringBuilder();
-        for (BitField bitField : fields) {
-            hex.append("%08x".formatted(bitField.toInteger()));
-        }
-        return hex.toString();
-    }
-
     public void update(BitField[] words) {
         BitField[] W = new BitField[words.length + 48];
         BitField[] T = new BitField[8];
@@ -77,7 +64,7 @@ public class Sha256 {
         }
     }
 
-    public BitField[] padd(byte[] message) {
+    public BitField[] prepareMessage(byte[] message) {
         int finalBlockLength = message.length % BLOCK_BYTES;
         int blockCount = message.length / BLOCK_BYTES + (finalBlockLength + 1 + 8 > BLOCK_BYTES ? 2 : 1);
         final IntBuffer result = IntBuffer.allocate(blockCount * (BLOCK_BYTES / Integer.BYTES));
@@ -127,27 +114,10 @@ public class Sha256 {
         return x.ror(17).xor(x.ror(19)).xor(x.shr(10));
     }
 
-    public static Set<String> dependencies(Map<String, Set<String>> data, String key, String expr){
-        if(data.containsKey(key)) return data.get(key);
-        Set<String> deps = new HashSet<>();
-        Pattern p = Pattern.compile("\\$(.*?)!");
-        Matcher m = p.matcher(expr);
-        while(m.find()){
-            String match = m.group(1);
-            if(match.startsWith("T")){
-                deps.addAll(dependencies(data, match, StandardBit.TEMPS.get(match)));
-            } else {
-                deps.add(match);
-            }
-        }
-        data.put(key, deps);
-        return deps;
-    }
-
     public static void main(String[] args) throws FileNotFoundException {
         Sha256 hash = new Sha256();
         String input = "Ahoj";
-        BitField[] w = hash.padd(input.getBytes(StandardCharsets.UTF_8));
+        BitField[] w = hash.prepareMessage(input.getBytes(StandardCharsets.UTF_8));
         hash.initialize();
         hash.update(w);
 
@@ -161,30 +131,14 @@ public class Sha256 {
         System.out.println(hex);
 
         try(PrintWriter writer = new PrintWriter(new FileOutputStream("expression.txt"))){
-            Map<String, Set<String>> deps = new TreeMap<>();
-
             for(int i=0; i<result.length; i++){
                 String expr = result[i].strEval("y", i * 32).toString();
                 writer.append(expr).append('\n');
-                /*String[] nl = expr.split("\n");
-                for(String line : nl){
-                    String[] parts = line.split("=");
-                    dependencies(deps, parts[0].strip(), parts[1].strip());
-                }*/
             }
 
-            for(var kv : deps.entrySet()){
-                if(!kv.getKey().startsWith("y")) continue;
-                writer.append(kv.getKey()).append("_deps = ");
-                for(var v : kv.getValue())
-                    writer.append(v).append(", ");
-                writer.append("\n");
-            }
-
-            for(Map.Entry<String, String> kv : StandardBit.TEMPS.entrySet()){
+            for(Map.Entry<String, String> kv : NandBit.TEMPS.entrySet()){
                 writer.append(kv.getKey()).append(" = ").append(kv.getValue()).append('\n');
             }
-
         }
     }
 }
