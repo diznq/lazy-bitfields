@@ -20,6 +20,27 @@ void explore(const std::map<std::string, std::string>& lines, std::set<std::stri
     }
 }
 
+std::string unwind(const std::map<std::string, std::string>& lines, std::map<std::string, std::string>& explored, const std::string& target){
+    auto it = explored.find(target);
+    if(it != explored.end()) return it->second;
+    
+    const std::string& line = lines.find(target)->second;
+    std::string mLine = line;
+    size_t pos = -1;
+    
+    while ((pos = mLine.find(':', pos + 1)) != std::string::npos) {
+        size_t end = mLine.find('/', pos);
+        std::string ent = mLine.substr(pos + 1, end - pos - 1);
+        if(ent[0] == 'T'){
+            mLine.replace(pos, end - pos + 1, unwind(lines, explored, ent));
+        }
+    }
+
+    explored[target] = mLine;
+
+    return mLine;
+}
+
 int main() {
     std::ifstream f("expression.txt");
     std::string line;
