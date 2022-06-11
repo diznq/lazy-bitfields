@@ -2,15 +2,16 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class StandardBit implements Bit {
-    private enum Op {
+    public enum Op {
         ZERO, ONE, NOT,
         NAND, AND, OR, XOR,
         NAND3, AND3, OR3, XOR3,
     }
 
-    private static int TEMP_COUNTER = 0;
-    public static Map<String, String> TEMPS = new TreeMap<String, String>();
+    private static int BIT_COUNTER = 0;
+    private final static Map<String, Bit> BITS = new TreeMap<>();
     byte result = (byte)2;
+    String expr;
 
     Bit a;
     Bit b;
@@ -21,39 +22,49 @@ public class StandardBit implements Bit {
     public StandardBit(byte value, String name){
         this.name = name;
         op = value == 0 ? Op.ZERO : Op.ONE;
+        BITS.put(name, this);
     }
 
-    public StandardBit(Bit a, Bit b, Op op){
+    public StandardBit(Bit a, Bit b, Op op, String name){
         this.a = a;
         this.b = b;
         this.op = op;
+        this.name = name;
+        BITS.put(name, this);
     }
 
-    public StandardBit(Bit a, Bit b, Bit c, Op op){
+    public StandardBit(Bit a, Bit b, Bit c, Op op, String name){
         this.a = a;
         this.b = b;
         this.c = c;
         this.op = op;
+        this.name = name;
+        BITS.put(name, this);
     }
 
+    @Override
     public Bit not() {
-        return new StandardBit(this, null, Op.NOT);
+        return new StandardBit(this, null, Op.NOT, "T%06d".formatted(BIT_COUNTER++));
     }
 
+    @Override
     public Bit nand(Bit other){
-        return new StandardBit(this, other, Op.NAND);
+        return new StandardBit(this, other, Op.NAND, "T%06d".formatted(BIT_COUNTER++));
     }
 
+    @Override
     public Bit and(Bit other){
-        return new StandardBit(this, other, Op.AND);
+        return new StandardBit(this, other, Op.AND, "T%06d".formatted(BIT_COUNTER++));
     }
 
+    @Override
     public Bit or(Bit other){
-        return new StandardBit(this, other, Op.OR);
+        return new StandardBit(this, other, Op.OR, "T%06d".formatted(BIT_COUNTER++));
     }
 
+    @Override
     public Bit xor(Bit other){
-        return new StandardBit(this, other, Op.XOR);
+        return new StandardBit(this, other, Op.XOR, "T%06d".formatted(BIT_COUNTER++));
     }
 
     /**
@@ -63,7 +74,7 @@ public class StandardBit implements Bit {
      * @return !(this & op1 & op2)
      */
     public Bit nand3(Bit op1, Bit op2){
-        return new StandardBit(this, op1, op2, Op.NAND3);
+        return new StandardBit(this, op1, op2, Op.NAND3, "T%06d".formatted(BIT_COUNTER++));
     }
 
     /**
@@ -73,7 +84,7 @@ public class StandardBit implements Bit {
      * @return (this & op1 & op2)
      */
     public Bit and3(Bit op1, Bit op2){
-        return new StandardBit(this, op1, op2, Op.AND3);
+        return new StandardBit(this, op1, op2, Op.AND3, "T%06d".formatted(BIT_COUNTER++));
     }
 
     /**
@@ -83,7 +94,7 @@ public class StandardBit implements Bit {
      * @return (this & op1 & op2)
      */
     public Bit or3(Bit op1, Bit op2){
-        return new StandardBit(this, op1, op2, Op.OR3);
+        return new StandardBit(this, op1, op2, Op.OR3, "T%06d".formatted(BIT_COUNTER++));
     }
 
     /**
@@ -93,7 +104,7 @@ public class StandardBit implements Bit {
      * @return (this ^ op1 ^ op2)
      */
     public Bit xor3(Bit op1, Bit op2){
-        return new StandardBit(this, op1, op2, Op.XOR3);
+        return new StandardBit(this, op1, op2, Op.XOR3, "T%06d".formatted(BIT_COUNTER++));
     }
 
     public Bit[] add(Bit other, Bit carry){
@@ -103,7 +114,8 @@ public class StandardBit implements Bit {
         };
     }
 
-    public synchronized byte eval() {
+    @Override
+    public byte eval() {
         if(result != 2) return result;
         return result = switch (op) {
             case ZERO -> (byte)0;
@@ -120,9 +132,10 @@ public class StandardBit implements Bit {
         };
     }
 
+    @Override
     public String strEval() {
-        if(name != null) return ":" + name + "/";
-        String result = switch (op) {
+        if(expr != null) return name;
+        expr = switch (op) {
             case ZERO -> "0";
             case ONE -> "1";
             case NOT -> "not(" + a.strEval() + ")";
@@ -135,8 +148,27 @@ public class StandardBit implements Bit {
             case OR3 -> "or("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
             case XOR3 -> "xor("+a.strEval()+", " + b.strEval()+", " + c.strEval()+ ")";
         };
-        name = "T%06d".formatted(TEMP_COUNTER++);
-        TEMPS.put(name, result);
-        return ":" + name + "/";
+        return name;
+    }
+
+    @Override
+    public Map<String, Bit> getAll() {
+        return BITS;
+    }
+
+    @Override
+    public void reset() {
+        result = 2;
+        expr = null;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public byte getComputedValue() {
+        return result;
     }
 }

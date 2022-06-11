@@ -1,3 +1,5 @@
+import java.util.Map;
+
 public class BitField {
     private static final Bit Z_CARRY = new NandBit((byte)0, "ZC");
     private final int BIT_SIZE;
@@ -164,5 +166,13 @@ public class BitField {
             results |= (bits[i].eval()) << (BIT_SIZE - 1 - i);
         }
         return results;
+    }
+
+    /**
+     * Get all bit instances
+     * @return
+     */
+    Map<String, Bit> getAllBits() {
+        return bits[0].getAll();
     }
 }

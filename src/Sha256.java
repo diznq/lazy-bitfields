@@ -122,23 +122,29 @@ public class Sha256 {
         hash.update(w);
 
         BitField[] result = hash.getH();
-        StringBuilder hex = new StringBuilder();
 
-        hex.append("Input: ").append(input).append("\nHash: ");
         for (BitField bitField : result) {
-            hex.append("%08x".formatted(bitField.toInteger()));
+            System.out.printf("%08x", bitField.toInteger());
         }
-        System.out.println(hex);
+        System.out.print("\n");
 
-        try(PrintWriter writer = new PrintWriter(new FileOutputStream("expression.txt"))){
-            for(int i=0; i<result.length; i++){
-                String expr = result[i].strEval("y", i * 32).toString();
-                writer.append(expr).append('\n');
-            }
+        Map<String, Bit> bits = result[0].getAllBits();
 
-            for(Map.Entry<String, String> kv : NandBit.TEMPS.entrySet()){
-                writer.append(kv.getKey()).append(" = ").append(kv.getValue()).append('\n');
-            }
+        Map<String, Byte> values = new HashMap<>();
+        for(Bit bit : bits.values()) {
+            values.put(bit.getName(), bit.getComputedValue());
+            bit.reset();
+        }
+        NandBit nb = (NandBit) bits.get("I_0000");
+        nb.op = NandBit.Op.ONE;
+        for (BitField bitField : result) {
+            System.out.printf("%08x", bitField.toInteger());
+        }
+        System.out.print("\n");
+
+        for(Bit bit : bits.values()) {
+            if(bit.eval() == values.get(bit.getName()))
+                System.out.println(bit.getName() + " is same");
         }
     }
 }

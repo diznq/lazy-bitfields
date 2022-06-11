@@ -1,3 +1,5 @@
+import java.util.Map;
+
 public interface Bit {
 
     /**
@@ -53,4 +55,26 @@ public interface Bit {
      * @return string form
      */
     String strEval();
+
+    /**
+     * Get all bits created
+     * @return all instances
+     */
+    Map<String, Bit> getAll();
+
+    /**
+     * Reset cached state
+     */
+    void reset();
+
+    /**
+     * Get name
+     */
+    String getName();
+
+    /**
+     * Get computed value
+     * @return computed value
+     */
+    byte getComputedValue();
 }
